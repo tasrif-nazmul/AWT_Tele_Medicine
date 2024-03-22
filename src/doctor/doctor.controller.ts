@@ -221,22 +221,23 @@ import {
   // @UseGuards(AuthGuard)
   // @UsePipes(new ValidationPipe())
   // @HttpCode(HttpStatus.OK)
-  // async ResponseService(@Param('id') id: number, @Body('doctorDescription') doctorDescription: string): Promise<any> {
-  //   if (!doctorDescription) 
-  //   {
-  //     throw new BadRequestException('Must be write description for the request');
+  // async ResponseService(
+  //   @Param('id') id: number,
+  //   @Body('doctorDescription') doctorDescription: string,
+  //   @Body('patient_id') patient_id: number
+  // ): Promise<any> {
+
+  //   if (!doctorDescription) {
+  //     throw new BadRequestException('Must write a description for the service request');
   //   }
 
-  //   try 
-  //   {
-  //     const Response_ = await this.doctorService.ResponseService(id, doctorDescription);
+  //   try {
+  //     const updatedService = await this.doctorService.ResponseService(id, doctorDescription,patient_id);
   //     return {
-  //       message: 'Response send successfully'
-  //       // appointment: Response_,
+  //       message: 'Response sent successfully',
+  //       service: updatedService,
   //     };
-  //   } 
-  //   catch (error) 
-  //   {
+  //   } catch (error) {
   //     throw new NotFoundException(error.message);
   //   }
   // }
@@ -251,6 +252,7 @@ import {
     @Body('patient_id') patient_id: number
   ): Promise<any> {
 
+    // console.log("Pp",patient_id );
     if (!doctorDescription) {
       throw new BadRequestException('Must write a description for the service request');
     }
@@ -267,29 +269,6 @@ import {
   }
 
 
-
-//   @Post(':id/eService/response')
-// @UseGuards(AuthGuard)
-// @UsePipes(new ValidationPipe())
-// @HttpCode(HttpStatus.OK)
-// async ResponseService(@Param('id') id: number, @Body('doctorDescription') doctorDescription: string): Promise<any> {
-//   if (!doctorDescription) {
-//     throw new BadRequestException('Must provide a description for the response');
-//   }
-
-//   try {
-//     const response = await this.doctorService.ResponseService(id, doctorDescription);
-//     const { patientId, patientEmail } = response; // Assuming the service method returns patientId and patientEmail
-
-//     return {
-//       message: 'Response sent successfully',
-//       patientId,
-//       patientEmail,
-//     };
-//   } catch (error) {
-//     throw new NotFoundException(error.message);
-//   }
-// }
 
 
   }

@@ -35,18 +35,30 @@ import { AuthGuard } from "./doctor/auth/auth.guard";
 
     }),
 
+    // MailerModule.forRoot({
+    //   transport: {
+    //     host: process.env.MAILER_HOST, // Host like gmail, outlook who provides the service of SMTP
+    //     port: parseInt(process.env.MAILER_PORT, 10),
+    //     ignoreTLS: true,
+    //     secure: true,
+    //     auth: {
+    //       user: process.env.MAILER_USER, // your-SMTP-mail-id-here
+    //       pass: process.env.MAILER_PASSWORD, // your-SMTP-mail-password-here
+    //     },
+    //   },
+    // }),
+
     MailerModule.forRoot({
       transport: {
-        host: process.env.MAILER_HOST, // Host like gmail, outlook who provides the service of SMTP
-        port: parseInt(process.env.MAILER_PORT, 10),
-        ignoreTLS: true,
-        secure: true,
+        host: 'smtp.gmail.com',
+        
         auth: {
-          user: process.env.MAILER_USER, // your-SMTP-mail-id-here
-          pass: process.env.MAILER_PASSWORD, // your-SMTP-mail-password-here
+          user: 'nhn0683@gmail.com',
+          pass: 'vwdq aovf inae uvtl',
         },
       },
     }),
+
   ],
 
   controllers: [AppController],

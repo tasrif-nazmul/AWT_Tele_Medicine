@@ -156,61 +156,125 @@ import { AuthService } from "./auth/auth.service";
     }
 
 
-
-//Accept requested appoinment by patient
-// async ResponseService(Serviceid: number, doctorDescription: string): Promise<eServiceEntity> {
-//   // Find the appointment by its ID
+// async ResponseService(Serviceid: number, doctorDescription: string, patient_id: number): Promise<any> {
+//   // Find the service request by its ID, including the patient relation
 //   const eServ = await this.eServiceRepository.findOneBy({ id: Serviceid });
 
-//   if (!eServ) 
-//   {
+//   if (!eServ) {
 //     throw new NotFoundException(`Service Request with ID ${Serviceid} not found`);
 //   }
 
-//   // Check if the appointment status is 'Pending'
-//   if (eServ.status !== 'Pending') 
-//   {
+//   // Check if the service status is 'Pending'
+//   if (eServ.status !== 'Pending') {
 //     throw new BadRequestException(`No Pending Service request found by ID ${Serviceid}`);
 //   }
 
 //   eServ.status = 'Responsed';
 //   eServ.responseTime = new Date().toISOString();
-  
 //   eServ.doctorDescription = doctorDescription;
 
-//   return await this.eServiceRepository.save(eServ);
+//   await this.eServiceRepository.save(eServ);
+
+//   // Fetch the patient's email if the patient is defined
+//   const patientInfo = await this.patientRepository.findOne({
+//     where: 
+//     {
+//       // id: Serviceid
+//       id: patient_id
+//     }
+//   });
+
+//   // Return the updated service with patient info
+//   return { ...eServ, patientInfo };
+// }
+
+// async ResponseService(Serviceid: number, doctorDescription: string, patient_id: number): Promise<any> {
+//   // Find the service request by its ID, including the patient relation
+//   const eServ = await this.eServiceRepository.findOneBy({ id: Serviceid });
+
+//   if (!eServ) {
+//     throw new NotFoundException(`Service Request with ID ${Serviceid} not found`);
+//   }
+
+//   // Check if the service status is 'Pending'
+//   if (eServ.status !== 'Pending') {
+//     throw new BadRequestException(`No Pending Service request found by ID ${Serviceid}`);
+//   }
+
+//   eServ.status = 'Responsed';
+//   eServ.responseTime = new Date().toISOString();
+//   eServ.doctorDescription = doctorDescription;
+
+//   await this.eServiceRepository.save(eServ);
+
+  
+//   // Fetch the patient's info using the provided patient_id
+//   const patientInfo = await this.patientRepository.findOneBy({ id: patient_id });
+
+//   console.log(patientInfo.id);
+//   console.log(patient_id);
+//   // Send an email to the patient
+//   if (patientInfo && patientInfo.email) {
+//     await this.mailerService.sendMail({
+//       to: patientInfo.email,
+//       // subject: 'Service Response Notification',
+//       subject: 'Test Email from Nest JS Project',
+//       // text: `Dear ${patientInfo.name},\n\nYour health service request has been responded. Please login to view the details.\n\nRegards,\nThe Doctor`,
+//       text: `Dear ${patientInfo.name},\n\nI am just triying to send automated email for my Nest JS project. If you have received this email, it means the test was successful.\n\nRegards,\nNazmul Hasan`,
+//     });
+//   }
+
+//   // Return the updated service with patient info
+//   return { ...eServ, patientInfo };
 // }
 
 async ResponseService(Serviceid: number, doctorDescription: string, patient_id: number): Promise<any> {
   // Find the service request by its ID, including the patient relation
   const eServ = await this.eServiceRepository.findOneBy({ id: Serviceid });
+  const eServs = await this.eServiceRepository.findOne({ where: {id:Serviceid}, relations:{patient: true} });
+  const eServss = await this.eServiceRepository.findOne({ where: {id:Serviceid}, relations:{doctor: true} });
+  const patientID = eServs.patient.id;
+  const DoctorID = eServss.doctor.id;
+  console.log("egd",DoctorID);
+  console.log("dfe",patientID);
 
-  if (!eServ) {
+  if (!eServ) 
+  {
     throw new NotFoundException(`Service Request with ID ${Serviceid} not found`);
   }
 
   // Check if the service status is 'Pending'
-  if (eServ.status !== 'Pending') {
+  if (eServ.status !== 'Pending') 
+  {
     throw new BadRequestException(`No Pending Service request found by ID ${Serviceid}`);
   }
 
+  // eServ.status = 'Responsed';
   eServ.status = 'Responsed';
   eServ.responseTime = new Date().toISOString();
   eServ.doctorDescription = doctorDescription;
 
   await this.eServiceRepository.save(eServ);
 
-  // Fetch the patient's email if the patient is defined
-  const patientInfo = await this.patientRepository.findOne({
-    where: 
-    {
-      // id: Serviceid
-      id: patient_id
-    }
-  });
+  
+  // Fetch the patient's info using the provided patient_id
+  const patient = await this.patientRepository.findOneBy({ id: patientID });
+
+  // Fetch the doctor's info using the provided patient_id
+  const doctor = await this.doctorRepository.findOneBy({ id: DoctorID });
+  
+  
+  //Send an email to the patient
+  if (patient && patient.email) {
+    await this.mailerService.sendMail({
+      to: patient.email,
+      subject: 'Service Response Notification',
+      text: `Dear ${patient.name},\n\nYour health service request has been responded. Please login to view the details.\n\nRegards,\n${doctor.name},\n${doctor.specialization},\nGreen Bangla General Hospital`,
+    });
+  }
 
   // Return the updated service with patient info
-  return { ...eServ, patientInfo };
+  return { ...eServ, patient,doctor };
 }
 
 
