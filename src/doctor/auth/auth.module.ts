@@ -12,7 +12,7 @@ import { TokenBlacklistService } from "./token_blacklist.service";
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: "30m" },
+      signOptions: { expiresIn: "2d" },
     }),
   ],
   providers: [AuthService, TokenBlacklistService],

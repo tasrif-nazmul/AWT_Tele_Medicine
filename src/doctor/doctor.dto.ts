@@ -181,7 +181,16 @@ export class PatientDTO {
   //   password: string;
   // }
 
+  export class payloadDTO {
+    // id: number;
+    // Email
+    id: number;
+    email: string;
+  
+  }
+
   export class LoginDTO {
+    // id: number;
     // Email
     @IsNotEmpty({ message: 'Email cannot be empty or null' })
     @IsEmail({}, { message: 'Please enter a valid email address' })

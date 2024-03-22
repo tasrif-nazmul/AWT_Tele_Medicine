@@ -249,16 +249,19 @@ import {
   async ResponseService(
     @Param('id') id: number,
     @Body('doctorDescription') doctorDescription: string,
-    @Body('patient_id') patient_id: number
+    @Body('patient_id') patient_id: number,
+    @Request() req
   ): Promise<any> {
 
+    // return req.user;
+    const doct_id = req.user.id;
     // console.log("Pp",patient_id );
     if (!doctorDescription) {
       throw new BadRequestException('Must write a description for the service request');
     }
 
     try {
-      const updatedService = await this.doctorService.ResponseService(id, doctorDescription,patient_id);
+      const updatedService = await this.doctorService.ResponseService(id,doct_id, doctorDescription);
       return {
         message: 'Response sent successfully',
         service: updatedService,

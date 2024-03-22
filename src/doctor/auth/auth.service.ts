@@ -4,9 +4,10 @@ import { JwtService } from "@nestjs/jwt";
 
 import * as bcrypt from "bcrypt";
 import { DoctorService } from "../doctor.service";
-import { LoginDTO, UserDTO } from "../doctor.dto";
+import { LoginDTO, UserDTO, payloadDTO } from "../doctor.dto";
 import { Request } from "express";
 import { TokenBlacklistService } from "./token_blacklist.service";
+import { instanceToPlain } from "class-transformer";
 
 @Injectable()
 export class AuthService {
@@ -30,9 +31,13 @@ export class AuthService {
     if (!(await bcrypt.compare(logindata.password, user.password))) {
       throw new UnauthorizedException("Password is incorrect");
     }
-    const payload = logindata;
+
+    const payload = new payloadDTO();
+    payload.id = user.id;
+    payload.email = user.email;
+    
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(instanceToPlain(payload)),
     };
   }
 
