@@ -39,6 +39,9 @@ export class UserEntity {
 
   @OneToMany(() => OtpEntity, (otp) => otp.user)
   otp: OtpEntity[];
+
+  @OneToMany(() => DoctorEntity, doctor => doctor.user)
+  doctors: DoctorEntity[];
 }
 
 @Entity("patient")
@@ -143,7 +146,7 @@ export class DoctorEntity {
   @Column()
   image: string;
 
-  @OneToOne(() => UserEntity) // Define the user relationship
+  @ManyToOne(() => UserEntity) // Define the user relationship
   @JoinColumn() // Add join column
   user: UserEntity; // Define the user property
   

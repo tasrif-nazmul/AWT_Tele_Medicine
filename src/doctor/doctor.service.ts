@@ -157,7 +157,8 @@ import { AuthService } from "./auth/auth.service";
 
 
 
-async ResponseService(Serviceid: number,doct_id: number, doctorDescription: string): Promise<any> {
+async ResponseService(Serviceid: number,doct_id: number, doctorDescription: string): Promise<any> 
+{
   const eServ = await this.eServiceRepository.findOne({ where: {id:Serviceid}, relations:{patient: true,doctor: true} });
   const patientID = eServ.patient.id;
 
@@ -171,7 +172,7 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   {
     throw new BadRequestException(`No Pending Service request found by ID ${Serviceid}`);
   }
-// return eServ;
+  // return eServ;
   // eServ.status = 'Responsed';
   eServ.status = 'Responsed';
   eServ.responseTime = new Date().toISOString();
@@ -188,7 +189,8 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   
   
   //Send an email to the patient
-  if (patient && patient.email) {
+  if (patient && patient.email) 
+  {
     await this.mailerService.sendMail({
       to: patient.email,
       subject: 'Service Response Notification',
@@ -201,8 +203,56 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
 }
 
 
-   
+async doctorProfile(doct_id: number): Promise<DoctorEntity> {
+  // Find the doctor's profile by user ID
+  const doctor = await this.doctorRepository.findOne({
+    where: { user: { id: doct_id } }, // Assuming 'id' is the foreign key in the UserEntity
+    relations: ['user'] // Include the 'user' relation
+  });
 
+  
+
+
+  // If no doctor found, throw NotFoundException
+  if (!doctor) {
+    throw new NotFoundException(`Doctor with user ID ${doct_id} not found`);
+  }
+
+  // Return the doctor's profile
+  return doctor;
+}
+
+
+async updateProfile(doct_id: number, updateData: DoctorEntity): Promise<DoctorEntity> {
+  // Find the doctor by ID
+  //const doctor = await this.doctorRepository.findOne({ where: { userId: doct_id }, relations: ['user'] });
+
+  const doctor = await this.doctorRepository.findOne({
+    where: { user: { id: doct_id } }, // Assuming 'id' is the foreign key in the UserEntity
+    relations: ['user'] // Include the 'user' relation
+  });
+
+  console.log("Test 232",doctor);
+
+  // If doctor not found, throw NotFoundException
+  if (!doctor) 
+  {
+    throw new NotFoundException(`Doctor with ID ${doct_id} not found`);
+  }
+
+  // Update the doctor's profile with the provided data
+  
+    doctor.name = updateData.name;
+    doctor.specialization = updateData.specialization;
+    doctor.degree = updateData.degree;
+    doctor.experience = updateData.experience;
+    doctor.email = updateData.email;
+    doctor.phoneNumber = updateData.phoneNumber;
+    doctor.image = updateData.image;
+
+  // Save the updated doctor entity
+  return await this.doctorRepository.save(doctor);
+}
 
 
 

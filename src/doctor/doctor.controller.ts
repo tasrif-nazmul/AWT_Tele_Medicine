@@ -22,6 +22,9 @@ import {
     ParseFilePipe,
     MaxFileSizeValidator,
     FileTypeValidator,
+    UploadedFiles
+    
+
   } from "@nestjs/common";
   import { DoctorService } from "./doctor.service";
   
@@ -39,6 +42,7 @@ import {
   import { AuthGuard } from "./auth/auth.guard";
   import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
   import { diskStorage, MulterError } from "multer";
+import { DoctorEntity } from "./doctor.entity";
   
   @Controller("api/doctor")
   export class DoctorController 
@@ -217,31 +221,6 @@ import {
     //---5----
   //---Response Service Request
 
-  // @Post(':id/eService/response')
-  // @UseGuards(AuthGuard)
-  // @UsePipes(new ValidationPipe())
-  // @HttpCode(HttpStatus.OK)
-  // async ResponseService(
-  //   @Param('id') id: number,
-  //   @Body('doctorDescription') doctorDescription: string,
-  //   @Body('patient_id') patient_id: number
-  // ): Promise<any> {
-
-  //   if (!doctorDescription) {
-  //     throw new BadRequestException('Must write a description for the service request');
-  //   }
-
-  //   try {
-  //     const updatedService = await this.doctorService.ResponseService(id, doctorDescription,patient_id);
-  //     return {
-  //       message: 'Response sent successfully',
-  //       service: updatedService,
-  //     };
-  //   } catch (error) {
-  //     throw new NotFoundException(error.message);
-  //   }
-  // }
-
   @Post(':id/eService/response')
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
@@ -266,13 +245,87 @@ import {
         message: 'Response sent successfully',
         service: updatedService,
       };
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       throw new NotFoundException(error.message);
     }
   }
 
+  //---6----
+  //---Doctor Profile
 
-
-
+  @Get('/profile')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe())
+  @HttpCode(HttpStatus.OK)
+  async getDoctorProfile(@Request() req
+  ): Promise<any> {
+  {
+    try 
+    {
+      const doct_id = req.user.id;
+      const doctorProfile = await this.doctorService.doctorProfile(doct_id);
+      return doctorProfile;
+    } 
+    catch (error) 
+    {
+      if (error instanceof NotFoundException) 
+      {
+        throw new NotFoundException(error.message);
+      }
+      throw error;
+    }
   }
-  
+}
+
+
+
+//---7----
+//---Doctor Profile update
+@Post('/profile/update')
+@UseInterceptors(FileInterceptor('image', {
+  storage: diskStorage({
+      destination: './uploads',
+      filename: function (req, file, cb) {
+          cb(null, Date.now() + file.originalname)
+      }
+  })
+}))
+@UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe({ transform: true }))
+@HttpCode(HttpStatus.OK)
+async updateDoctorProfile(@Request() req,@UploadedFile(
+  new ParseFilePipe({
+    fileIsRequired: true,
+    validators:[
+      new MaxFileSizeValidator({ maxSize: 16000000 }),
+      // new FileTypeValidator({ fileType: 'png|jpg|jpeg|' }),
+    ]
+  })
+) file: Express.Multer.File , @Body() doctorEntity: DoctorEntity): Promise<any> 
+{
+  try {
+    const doct_id = req.user.id;
+    doctorEntity.image = file.filename;
+    const updatedDoctorProfile = await this.doctorService.updateProfile(doct_id, doctorEntity);
+    return {
+      message: 'Doctor profile updated successfully',
+      doctorProfile: updatedDoctorProfile,
+    };
+  } 
+  catch (error) 
+  {
+    if (error instanceof NotFoundException) 
+    {
+      throw new NotFoundException(error.message);
+    }
+    throw error;
+  }
+}
+
+
+
+
+
+}
