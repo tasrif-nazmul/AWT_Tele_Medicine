@@ -161,17 +161,22 @@ import { DoctorEntity } from "./doctor.entity";
   //---3----
   //---Accept Appointment
 
-  @Put(':id/accept')
+  @Put(':id/apoinment/accept')
   @UseGuards(AuthGuard)
   @UsePipes(new ValidationPipe())
   @HttpCode(HttpStatus.OK)
-  async acceptAppointment(@Param('id') id: number, @Body('scheduledTime') scheduledTime: string): Promise<any> {
+
+  async acceptAppointment(@Request() req,@Param('id') id: number, @Body('scheduledTime') scheduledTime: string): Promise<any> {
+    
     if (!scheduledTime) {
       throw new BadRequestException('Schedule time must be provided');
     }
 
     try {
-      const updatedAppointment = await this.doctorService.updateAppointment(id, scheduledTime);
+
+      const doct_id = req.user.id;
+      console.log("hdgd",doct_id);
+      const updatedAppointment = await this.doctorService.updateAppointment(id, scheduledTime,doct_id);
       return {
         message: 'Appointment Accepted and Scheduled successfully',
         appointment: updatedAppointment,
@@ -234,7 +239,7 @@ import { DoctorEntity } from "./doctor.entity";
 
     // return req.user;
     const doct_id = req.user.id;
-    // console.log("Pp",patient_id );
+    console.log("Pp",doct_id );
     if (!doctorDescription) {
       throw new BadRequestException('Must write a description for the service request');
     }

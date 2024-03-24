@@ -13,7 +13,10 @@ import {
   InternalServerErrorException,
   UseGuards,
   HttpCode,
+  NotFoundException,
+
 } from "@nestjs/common";
+import { DoctorService } from "../doctor.service";
 import { AuthService } from "./auth.service";
 import * as bcrypt from "bcrypt";
 import { LoginDTO, New_PasswordDTO, UserDTO } from "../doctor.dto";
@@ -22,16 +25,66 @@ import { ValidationError } from "class-validator";
 @Controller("api/auth")
 // @UseGuards(AuthGuard)
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly doctorService: DoctorService,private authService: AuthService) {}
 
-  @Get("/index")
-  @HttpCode(HttpStatus.OK) 
-  getIndex(): any {
-    return "Relax! Patient Auth is working.";
+
+  //----8----
+  // @Get("/index")
+  // @UseGuards(AuthGuard)
+  // @UsePipes(new ValidationPipe())
+  // @HttpCode(HttpStatus.OK)
+  // @HttpCode(HttpStatus.OK) 
+  // async getIndex(@Request() req
+  // ): Promise<any> 
+  // {
+
+  //   try{
+  //     const doct_id = req.user.id;
+  //     const doct_name = doct_id.name;
+
+  //     return "Welcome Dr {doct_name} ";
+  //   }
+
+  //   catch (error) 
+  //   {
+  //     if (error instanceof NotFoundException) 
+  //     {
+  //       throw new NotFoundException(error.message);
+  //     }
+  //     throw error;
+  //   }
+
+    
+  // }
+
+@Get("/index")
+@UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe())
+@HttpCode(HttpStatus.OK)
+async getIndex(@Request() req): Promise<any> {
+  try {
+    const doct_id = req.user.id;
+    
+    // Assuming `getUser` is a method to retrieve the doctor entity
+    const doctor = await this.doctorService.doctorProfile(doct_id);
+    const doct_name = doctor.name;
+    const doct_specialization = doctor.specialization;
+
+    
+    return `Welcome Dr ${doct_name},\n${doct_specialization},\nGreen Bangla General Hospital,\n Explore your dashboard to manage appointments, view patient records, and more.`;
+
+
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw new NotFoundException(error.message);
+    }
+    throw error;
   }
+}
+
 
   
-
+//---9----
 @Post("/signup")
 @HttpCode(HttpStatus.OK) // Set the status code to 200 (OK)
 async Signup(@Body() signup_inf: UserDTO): Promise<any> {
@@ -57,7 +110,7 @@ async Signup(@Body() signup_inf: UserDTO): Promise<any> {
 }
 
 
-
+//-----10---
   @Post("/login")
   @HttpCode(HttpStatus.OK) // Set the status code to 200 (OK)
   @UsePipes(new ValidationPipe())
@@ -65,53 +118,29 @@ async Signup(@Body() signup_inf: UserDTO): Promise<any> {
     return await this.authService.signIn(login_info);
   }
 
-  // @Get("/logout")
-  // // @UseGuards(AuthGuard)
-  // @UsePipes(new ValidationPipe())
-  // async Logout(@Request() req): Promise<any> 
-  // {
-  //   try {
-  //     const token = await this.authService.extractTokenFromHeader(req);
-  //     if (token != null && token != "") 
-  //     {
-  //       return await this.authService.logout(req.user.email, token);
-  //     } 
-  //     else 
-  //     {
-  //       throw new BadRequestException("Please provide the token inside header, along with the request",);
-  //     }
-  //   } 
-    
-  //   catch (e) 
-  //   {
-  //     throw new InternalServerErrorException(e.message);
-  //   }
-  // }
-
-  @Get("/logout")
-// @UseGuards(AuthGuard)
+ 
+//---11-----
+@Get("/logout")
+@UseGuards(AuthGuard)
 @UsePipes(new ValidationPipe())
-async Logout(@Request() req): Promise<any> 
-{
+@HttpCode(HttpStatus.OK) // Set the status code to 200 (OK)
+async logout(@Request() req): Promise<any> {
   try {
     const token = await this.authService.extractTokenFromHeader(req);
-    if (token != null && token != "") 
-    {
+    if (token && token !== "") {
       const logoutResult = await this.authService.logout(req.user.email, token);
       return { message: "Logout successful." };
-    } 
-    else 
-    {
-      throw new BadRequestException("Please provide the token inside header, along with the request");
+    } else {
+      throw new BadRequestException("Please provide the token inside the header along with the request.");
     }
-  } 
-  catch (e) 
-  {
-    throw new InternalServerErrorException(e.message);
+  } catch (error) {
+    throw new InternalServerErrorException(error.message);
   }
 }
 
 
+
+//----12----
   @Post("/change_password")
   @UsePipes(new ValidationPipe())
   @HttpCode(HttpStatus.OK) // Set the status code to 200 (OK)

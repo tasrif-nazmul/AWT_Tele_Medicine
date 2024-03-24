@@ -76,6 +76,41 @@ export class PatientEntity
   user: UserEntity;
 }
 
+@Entity("doctor")
+export class DoctorEntity {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  specialization: string;
+
+  @Column()
+  degree: string;
+
+  @Column()
+  experience: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  phoneNumber: string;
+
+  @Column()
+  image: string;
+
+  @ManyToOne(() => UserEntity) // Define the user relationship
+  @JoinColumn() // Add join column
+  user: UserEntity; // Define the user property
+  
+  @OneToMany(() => eServiceEntity,(eService)=>eService.doctor)
+  eServices: eServiceEntity[];
+  
+}
+
 @Entity("appointment")
 export class AppointmentEntity 
 {
@@ -113,47 +148,18 @@ export class AppointmentEntity
   patient: UserEntity;
 
 
-  @ManyToOne(() => UserEntity, (user) => user.appointments)
+  // @ManyToOne(() => UserEntity, (user) => user.appointments)
+  // @JoinColumn({ name: "doctor_id" })
+  // doctor: UserEntity;
+  
+  @ManyToOne(() => DoctorEntity, (doctor) => doctor.id)
   @JoinColumn({ name: "doctor_id" })
-  doctor: UserEntity;
+  doctor: DoctorEntity;
 }
 
 
 
-@Entity("doctor")
-export class DoctorEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
 
-  @Column()
-  name: string;
-
-  @Column()
-  specialization: string;
-
-  @Column()
-  degree: string;
-
-  @Column()
-  experience: string;
-
-  @Column()
-  email: string;
-
-  @Column()
-  phoneNumber: string;
-
-  @Column()
-  image: string;
-
-  @ManyToOne(() => UserEntity) // Define the user relationship
-  @JoinColumn() // Add join column
-  user: UserEntity; // Define the user property
-  
-  @OneToMany(() => eServiceEntity,(eService)=>eService.doctor)
-  eServices: eServiceEntity[];
-  
-}
 
 
 @Entity("eService")

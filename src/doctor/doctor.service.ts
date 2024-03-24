@@ -122,9 +122,10 @@ import { AuthService } from "./auth/auth.service";
 
 
     //Accept requested appoinment by patient
-    async updateAppointment(appointmentId: number, scheduledTime: string): Promise<AppointmentEntity> {
+    async updateAppointment(appointmentId: number, scheduledTime: string,doct_id: number): Promise<AppointmentEntity> {
       // Find the appointment by its ID
       const appointment = await this.appointmentRepository.findOneBy({ id: appointmentId });
+      // const appointment = await this.appointmentRepository.findOne({ where: {id: appointmentId}, relations: {patient: true}},);
     
       if (!appointment) {
         // Handle case where appointment is not found
@@ -137,8 +138,14 @@ import { AuthService } from "./auth/auth.service";
       }
     
       // Update the appointment properties
-      appointment.status = 'Accepted';
+      appointment.status = 'Pending'; //accepted hobe
       appointment.responseTime = new Date().toISOString();
+      const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctors: true}});
+      
+      // console.log("dr obj",doctorObj);
+      // appointment.doctor = doctorObj;
+
+      appointment.doctor = userObj.doctors[0];
       
       // Set the scheduledTime provided by the user
       appointment.scheduledTime = scheduledTime;
@@ -174,11 +181,19 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   }
   // return eServ;
   // eServ.status = 'Responsed';
-  eServ.status = 'Responsed';
+  eServ.status = 'Pending';
   eServ.responseTime = new Date().toISOString();
   eServ.doctorDescription = doctorDescription;
   const doctObj = await this.doctorRepository.findOneBy({id: doct_id});
+  
   eServ.doctor = doctObj;
+  // const fhd = await this.doctorRepository.findOne({ where: {userId:doctObj}, relations:{user: true} });
+
+  const doctor = await this.doctorRepository.findOne({ where: { user: doctObj }, relations: ['user'] });
+  // console.log("fhd",doctor);
+
+  // console.log("doctObj",doctObj);
+  // console.log("doctObj",doct_id);
 
   await this.eServiceRepository.save(eServ);
 
@@ -187,6 +202,8 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   const patient = await this.patientRepository.findOneBy({ id: patientID });
 
   
+  const ptName = patient.name;
+  console.log("Test",ptName);
   
   //Send an email to the patient
   if (patient && patient.email) 
@@ -194,12 +211,13 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
     await this.mailerService.sendMail({
       to: patient.email,
       subject: 'Service Response Notification',
-      text: `Dear ${patient.name},\n\nYour health service request has been responded. Please login to view the details.\n\nRegards,\n${doctObj.name},\n${doctObj.specialization},\nGreen Bangla General Hospital`,
+      text: `Dear ${ptName},\n\nYour health service request has been responded. Please login to view the details.\n\nRegards,\n${doctor.name},\n${doctor.specialization},\nGreen Bangla General Hospital`,
+      //text: `Test`,
     });
   }
 
   // Return the updated service with patient info
-  return { ...eServ, patient };
+  return { ...eServ, patient,doctor };
 }
 
 

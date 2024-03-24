@@ -54,7 +54,7 @@ import { AuthGuard } from "./doctor/auth/auth.guard";
         
         auth: {
           user: 'nhn0683@gmail.com',
-          pass: 'vwdq aovf inae uvtl',
+          pass: 'bkgu kkqh dzwl wzpm',
         },
       },
     }),
