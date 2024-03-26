@@ -1,6 +1,8 @@
   import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
   import { InjectRepository } from "@nestjs/typeorm";
-  import { AppointmentEntity, BillingEntity, DoctorEntity, FeedbackEntity, MedicalLabRecordEntity, OtpEntity, PatientEntity, SessionEntity, UserEntity, eServiceEntity } from "./doctor.entity";
+  import { BillingEntity, DoctorEntity, FeedbackEntity, MedicalLabRecordEntity, OtpEntity, PatientEntity, SessionEntity, eServiceEntity } from "./doctor.entity";
+  import { AppointmentEntity } from "./appoinment.entity";
+  import { UserEntity} from "./user.entity";
   import { MoreThanOrEqual, Repository } from "typeorm";
   import { AppointmentDTO, BillingDTO, DoctorDTO, FeedbackDTO, LoginDTO, Patient_ProfileDTO, PatientDTO, UserDTO } from "./doctor.dto";
   import { MapperService } from "./mapper.service";
@@ -77,7 +79,7 @@ import { AuthService } from "./auth/auth.service";
       // Create a new doctor entity and assign the user
       const newDoctor = this.doctorRepository.create({
         ...doctorInfo,
-        // user: user, // Assign the user
+        user: user, // Assign the user
       });
   
       // Save the new doctor entity
@@ -167,12 +169,12 @@ import { AuthService } from "./auth/auth.service";
       // Update the appointment properties
       appointment.status = 'Accepted'; //accepted
       appointment.responseTime = new Date().toISOString();
-      const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctors: true}});
+      const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctor: true}});
       
       // console.log("dr obj",doctorObj);
       // appointment.doctor = doctorObj;
 
-      appointment.doctor = userObj.doctors[0];
+      appointment.doctor = userObj.doctor;
       
       // Set the scheduledTime provided by the user
       appointment.scheduledTime = scheduledTime;
@@ -248,10 +250,10 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   const doctObj = await this.doctorRepository.findOneBy({id: doct_id});
   console.log("sddwdw",doctObj);
 
-  const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctors: true}});
+  const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctor: true}});
       
 
-  eServ.doctor = userObj.doctors[0];
+  eServ.doctor = userObj.doctor;
 
 
   const doctor = await this.doctorRepository.findOne({ where: { user: doctObj }, relations: ['user'] });

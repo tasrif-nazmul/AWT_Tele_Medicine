@@ -7,42 +7,144 @@ import {
   OneToOne,
   JoinColumn,
 } from "typeorm";
+import { UserEntity } from "./user.entity";
+import { AppointmentEntity } from "./appoinment.entity";
 
-@Entity("user")
-export class UserEntity {
+// @Entity("appointment")
+// export class AppointmentEntity 
+// {
+//   @PrimaryGeneratedColumn()
+//   id: number;
+
+//   // @Column()
+//   // user_id
+//   // patient_id: number;
+
+//   // @Column()
+//   // user_id
+//   // doctor_id: number;
+
+//   @Column()
+//   appointment_date: string;
+
+//   @Column()
+//   appointment_time: string;
+
+//   @Column({ nullable: true })
+//   disease: string;
+
+//   @Column({ nullable: true }) 
+//   responseTime: string;
+
+//   @Column({ nullable: true }) 
+//   scheduledTime: string;
+
+//   @Column()
+//   status: string;
+
+//   @ManyToOne(() => UserEntity, (user) => user.appointments)
+//   @JoinColumn({ name: "patient_id" })
+//   patient: UserEntity;
+
+
+//   // @ManyToOne(() => UserEntity, (user) => user.appointments)
+//   // @JoinColumn({ name: "doctor_id" })
+//   // doctor: UserEntity;
+  
+//   @ManyToOne(() => DoctorEntity, (doctor) => doctor.id)
+//   @JoinColumn({ name: "doctor_id" })
+//   doctor: DoctorEntity;
+// }
+
+
+@Entity("doctor")
+export class DoctorEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  specialization: string;
+
+  @Column()
+  degree: string;
+
+  @Column()
+  experience: string;
 
   @Column()
   email: string;
 
   @Column()
-  password: string;
+  phoneNumber: string;
 
   @Column()
-  role: string;
+  image: string;
 
-  @OneToMany(() => AppointmentEntity, (appointment) => appointment.patient)
-  appointments: AppointmentEntity[];
+  // @ManyToOne(() => UserEntity)
+  // @JoinColumn()
+  // user: UserEntity;
+  // @ManyToOne(() => UserEntity) // Specify cascade option
+  // @JoinColumn()
+  // user: UserEntity;
 
-  @OneToMany(() => MedicalLabRecordEntity, (record) => record.user)
-  medicalLabRecords: MedicalLabRecordEntity[];
+  @OneToOne(() => UserEntity, (user)=> user.doctor)
+  @JoinColumn()
+  user: UserEntity
+  
+  @OneToMany(() => eServiceEntity,(eService)=>eService.doctor, {onDelete: 'SET NULL'})
+  eServices: eServiceEntity[];
 
-  @OneToMany(() => FeedbackEntity, (feedback) => feedback.user)
-  feedbacks: FeedbackEntity[];
-
-  @OneToMany(() => BillingEntity, (billing) => billing.user)
-  billings: BillingEntity[];
-
-  @OneToMany(() => SessionEntity, (session) => session.user)
-  sessions: SessionEntity[];
-
-  @OneToMany(() => OtpEntity, (otp) => otp.user)
-  otp: OtpEntity[];
-
-  @OneToMany(() => DoctorEntity, doctor => doctor.user)
-  doctors: DoctorEntity[];
+  @OneToMany(() => AppointmentEntity, (appoinment) => appoinment.id, {onDelete: 'SET NULL'})
+  doctor: AppointmentEntity;
+  
 }
+
+
+
+// @Entity("user")
+// export class UserEntity {
+//   @PrimaryGeneratedColumn()
+//   id: number;
+
+//   @Column()
+//   email: string;
+
+//   @Column()
+//   password: string;
+
+//   @Column()
+//   role: string;
+
+//   @OneToMany(() => AppointmentEntity, (appointment) => appointment.patient)
+//   appointments: AppointmentEntity[];
+
+//   @OneToMany(() => MedicalLabRecordEntity, (record) => record.user)
+//   medicalLabRecords: MedicalLabRecordEntity[];
+
+//   @OneToMany(() => FeedbackEntity, (feedback) => feedback.user)
+//   feedbacks: FeedbackEntity[];
+
+//   @OneToMany(() => BillingEntity, (billing) => billing.user)
+//   billings: BillingEntity[];
+
+//   @OneToMany(() => SessionEntity, (session) => session.user)
+//   sessions: SessionEntity[];
+
+//   @OneToMany(() => OtpEntity, (otp) => otp.user)
+//   otp: OtpEntity[];
+
+//   // @OneToMany(() => DoctorEntity, doctor => doctor.user)
+//   // doctors: DoctorEntity[];
+
+//   @OneToOne(() => DoctorEntity, (doctor)=>doctor.user)
+//   doctor: DoctorEntity
+// }
+
+
+
 
 @Entity("patient")
 export class PatientEntity 
@@ -76,89 +178,8 @@ export class PatientEntity
   user: UserEntity;
 }
 
-@Entity("doctor")
-export class DoctorEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  name: string;
-
-  @Column()
-  specialization: string;
-
-  @Column()
-  degree: string;
-
-  @Column()
-  experience: string;
-
-  @Column()
-  email: string;
-
-  @Column()
-  phoneNumber: string;
-
-  @Column()
-  image: string;
-
-  // @ManyToOne(() => UserEntity)
-  // @JoinColumn()
-  // user: UserEntity;
-  @ManyToOne(() => UserEntity) // Specify cascade option
-  @JoinColumn()
-  user: UserEntity;
-  
-  @OneToMany(() => eServiceEntity,(eService)=>eService.doctor)
-  eServices: eServiceEntity[];
-  
-}
-
-@Entity("appointment")
-export class AppointmentEntity 
-{
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  // @Column()
-  // user_id
-  // patient_id: number;
-
-  // @Column()
-  // user_id
-  // doctor_id: number;
-
-  @Column()
-  appointment_date: string;
-
-  @Column()
-  appointment_time: string;
-
-  @Column({ nullable: true })
-  disease: string;
-
-  @Column({ nullable: true }) 
-  responseTime: string;
-
-  @Column({ nullable: true }) 
-  scheduledTime: string;
-
-  @Column()
-  status: string;
-
-  @ManyToOne(() => UserEntity, (user) => user.appointments)
-  @JoinColumn({ name: "patient_id" })
-  patient: UserEntity;
 
 
-  // @ManyToOne(() => UserEntity, (user) => user.appointments)
-  // @JoinColumn({ name: "doctor_id" })
-  // doctor: UserEntity;
-  
-  @ManyToOne(() => DoctorEntity, (doctor) => doctor.id)
-  @JoinColumn({ name: "doctor_id" })
-  doctor: DoctorEntity;
-}
 
 
 

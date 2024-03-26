@@ -4,7 +4,6 @@ import { DoctorService } from "./doctor.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { MulterModule } from '@nestjs/platform-express';
 import {
-  AppointmentEntity,
   BillingEntity,
   DoctorEntity,
   FeedbackEntity,
@@ -12,9 +11,15 @@ import {
   OtpEntity,
   PatientEntity,
   SessionEntity,
-  UserEntity,
+  
   eServiceEntity
 } from "./doctor.entity";
+
+import {
+  AppointmentEntity
+} from "./appoinment.entity";
+
+import{UserEntity} from "./user.entity"
 import { MapperService } from "./mapper.service";
 import { JwtModule, JwtService } from "@nestjs/jwt";
 import { TokenBlacklistService } from "./auth/token_blacklist.service";
