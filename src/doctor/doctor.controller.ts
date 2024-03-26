@@ -43,6 +43,7 @@ import {
   import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
   import { diskStorage, MulterError } from "multer";
 import { DoctorEntity } from "./doctor.entity";
+import { PatientEntity } from "./doctor.entity";
   
   @Controller("api/doctor")
   export class DoctorController 
@@ -131,31 +132,51 @@ import { DoctorEntity } from "./doctor.entity";
     //---2----
     //---Get Appointment Details
 
-
   @Get("appointment/list") 
-  @UseGuards(AuthGuard)
-  @UsePipes(new ValidationPipe())
-  @HttpCode(HttpStatus.OK)
-  async GetAllAppointmentList(@Request() req): Promise<any> 
-  { 
-    try
-    {
-      const appointmentList = await this.doctorService.GetApoinments(
-        
-      );
+@UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe())
+@HttpCode(HttpStatus.OK)
+async GetAllPendingAppointments(@Request() req): Promise<any> { 
+  try {
+    const pendingAppointments = await this.doctorService.getAppointments({ status: 'Pending' });
+    if (pendingAppointments.length > 0) {
+      return pendingAppointments;
+    } else {
+      throw new NotFoundException("No pending appointments found");
+    }
+  } catch (e) {
+    throw new InternalServerErrorException(e.message);
+  }
+}
 
-      if (appointmentList.length > 0) {
-        return appointmentList;
-      } else {
-        throw new NotFoundException("No Appointments found"); // corrected error message
-      }
+@Get("completed/appointment/list") 
+@UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe())
+@HttpCode(HttpStatus.OK)
+async CompleteAppointments(@Request() req): Promise<any> { 
+  try {
+    const doct_id = req.user.id;
+    // console.log("dr ids",doct_id);
+    
+    
+    const pendingAppointments = await this.doctorService.CompleteAppointments(doct_id);
+    if (pendingAppointments.length > 0) 
+    {
+      return pendingAppointments;
     } 
     
-    catch (e) 
+    else 
     {
-      throw new InternalServerErrorException(e.message);
+      throw new NotFoundException("No Accepted appointments found by this Doctor");
     }
+  } 
+  
+  catch (e) 
+  {
+    throw new InternalServerErrorException(e.message);
   }
+}
+
 
 
   //---3----
@@ -175,7 +196,6 @@ import { DoctorEntity } from "./doctor.entity";
     try {
 
       const doct_id = req.user.id;
-      console.log("hdgd",doct_id);
       const updatedAppointment = await this.doctorService.updateAppointment(id, scheduledTime,doct_id);
       return {
         message: 'Appointment Accepted and Scheduled successfully',
@@ -200,9 +220,7 @@ import { DoctorEntity } from "./doctor.entity";
     { 
       try
       {
-        const serviceList = await this.doctorService.GetService(
-          
-        );
+        const serviceList = await this.doctorService.GetService({ status: 'Pending' });
   
         if (serviceList.length > 0) 
         {
@@ -211,7 +229,35 @@ import { DoctorEntity } from "./doctor.entity";
         
         else 
         {
-          throw new NotFoundException("No Service Request found"); 
+          throw new NotFoundException("No Pending Service Request found"); 
+        }
+      } 
+      
+      catch (e) 
+      {
+        throw new InternalServerErrorException(e.message);
+      }
+    }
+
+    @Get("service/list/completed") 
+    @UseGuards(AuthGuard)
+    @UsePipes(new ValidationPipe())
+    @HttpCode(HttpStatus.OK)
+    async CompletedServiceReq(@Request() req): Promise<any> 
+    { 
+      try
+      {
+        const doct_id = req.user.id;
+        const serviceList = await this.doctorService.CompletedServiceReq(doct_id);
+  
+        if (serviceList.length > 0) 
+        {
+          return serviceList;
+        } 
+        
+        else 
+        {
+          throw new NotFoundException("No Responded Service Request found"); 
         }
       } 
       
@@ -329,6 +375,45 @@ async updateDoctorProfile(@Request() req,@UploadedFile(
   }
 }
 
+
+
+@Get('patient/list')
+@UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe({ transform: true }))
+@HttpCode(HttpStatus.OK)
+
+  async getPatientList(): Promise<PatientEntity[]> 
+  {
+    try {
+      // Call the service method to get the list of patients
+      const patients = await this.doctorService.getPatientList();
+      
+      // Return the list of patients
+      return patients;
+    } catch (error) {
+      // Handle errors
+      throw error;
+    }
+  }
+
+
+  //delete doctor
+  @Delete('/delete/:id')
+  @UseGuards(AuthGuard)
+@UsePipes(new ValidationPipe({ transform: true }))
+@HttpCode(HttpStatus.OK)
+async deleteDoctor(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  try {
+    await this.doctorService.deleteDoctor(id);
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      // Handle NotFoundException
+      throw error;
+    }
+    // Handle other errors
+    throw new InternalServerErrorException('An error occurred while deleting the doctor');
+  }
+}
 
 
 

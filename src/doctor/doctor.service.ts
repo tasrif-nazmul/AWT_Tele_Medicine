@@ -77,7 +77,7 @@ import { AuthService } from "./auth/auth.service";
       // Create a new doctor entity and assign the user
       const newDoctor = this.doctorRepository.create({
         ...doctorInfo,
-        user: user, // Assign the user
+        // user: user, // Assign the user
       });
   
       // Save the new doctor entity
@@ -110,14 +110,41 @@ import { AuthService } from "./auth/auth.service";
 
 
 
-
-
-
-    //find apoinments
-    async GetApoinments(): Promise<AppointmentEntity[]>
-    {
-        return this.appointmentRepository.find();
+    async getAppointments(filter: any): Promise<AppointmentEntity[]> {
+      // Assuming `filter` contains parameters for filtering appointments
+      return this.appointmentRepository.find({ where: filter });
     }
+
+   
+
+    async CompleteAppointments(doctorId: number): Promise<AppointmentEntity[]> {
+      try {
+
+        // Find the doctor based on the userId
+        const doctor = await this.doctorRepository.findOne({
+          where: { user: { id: doctorId } },
+          relations: ['user'],
+        });
+    
+        if (!doctor) {
+          throw new NotFoundException('Doctor not found');
+        }
+    
+        // Now that we have the doctor, we can use its ID to find appointments
+        const pendingAppointments = await this.appointmentRepository.find({
+          where: {
+            status: 'Accepted',
+            doctor: { id: doctor.id }, // Assuming `doctor` is the relationship property in AppointmentEntity
+          },
+        });
+    
+        return pendingAppointments;
+      } catch (error) {
+        throw error;
+      }
+    }
+    
+    
 
 
 
@@ -138,7 +165,7 @@ import { AuthService } from "./auth/auth.service";
       }
     
       // Update the appointment properties
-      appointment.status = 'Pending'; //accepted hobe
+      appointment.status = 'Accepted'; //accepted
       appointment.responseTime = new Date().toISOString();
       const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctors: true}});
       
@@ -154,12 +181,45 @@ import { AuthService } from "./auth/auth.service";
       return await this.appointmentRepository.save(appointment);
     }
     
-    
+   
 
     //Get Service Request
-    async GetService(): Promise<eServiceEntity[]>
+    async GetService(filter: any): Promise<eServiceEntity[]>
     {
-        return this.eServiceRepository.find();
+        return this.eServiceRepository.find({where: filter});
+    }
+
+
+
+    async CompletedServiceReq(doctorId: number): Promise<eServiceEntity[]> {
+      try 
+      {
+        console.log("huwedjiend",doctorId);
+
+        // Find the doctor based on the userId
+        const doctor = await this.doctorRepository.findOne({
+          where: { user: { id: doctorId } },
+          relations: ['user'],
+        });
+
+        console.log("huwedjiend",doctor);
+    
+        if (!doctor) {
+          throw new NotFoundException('Doctor not found');
+        }
+    
+        // Now that we have the doctor, we can use its ID to find appointments
+        const RespondedService = await this.eServiceRepository.find({
+          where: {
+            status: 'Responsed',
+            doctor: { id: doctor.id }, 
+          },
+        });
+    
+        return RespondedService;
+      } catch (error) {
+        throw error;
+      }
     }
 
 
@@ -181,19 +241,22 @@ async ResponseService(Serviceid: number,doct_id: number, doctorDescription: stri
   }
   // return eServ;
   // eServ.status = 'Responsed';
-  eServ.status = 'Pending';
+  eServ.status = 'Responsed';
   eServ.responseTime = new Date().toISOString();
   eServ.doctorDescription = doctorDescription;
-  const doctObj = await this.doctorRepository.findOneBy({id: doct_id});
   
-  eServ.doctor = doctObj;
-  // const fhd = await this.doctorRepository.findOne({ where: {userId:doctObj}, relations:{user: true} });
+  const doctObj = await this.doctorRepository.findOneBy({id: doct_id});
+  console.log("sddwdw",doctObj);
+
+  const userObj = await this.userRepository.findOne({where: {id:doct_id}, relations: {doctors: true}});
+      
+
+  eServ.doctor = userObj.doctors[0];
+
 
   const doctor = await this.doctorRepository.findOne({ where: { user: doctObj }, relations: ['user'] });
   // console.log("fhd",doctor);
 
-  // console.log("doctObj",doctObj);
-  // console.log("doctObj",doct_id);
 
   await this.eServiceRepository.save(eServ);
 
@@ -272,6 +335,47 @@ async updateProfile(doct_id: number, updateData: DoctorEntity): Promise<DoctorEn
   return await this.doctorRepository.save(doctor);
 }
 
+
+
+
+//patient list
+async getPatientList(): Promise<PatientEntity[]> {
+  try {
+    // Retrieve list of patients
+    const patients = await this.patientRepository.find();
+    
+    // Return the list of patients
+    return patients;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+//delete doctor
+async deleteDoctor(doctorId: number): Promise<void> {
+  try {
+
+
+    
+    // Find the doctor by ID
+    const doctor = await this.doctorRepository.findOneBy({id: doctorId});
+    console.log("deygd", doctor)
+
+    // If doctor is not found, throw NotFoundException
+    if (!doctor) 
+    {
+      throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+    }
+
+    // Delete the doctor
+    await this.doctorRepository.remove(doctor);
+  } 
+  
+  catch (error) {
+    throw new Error(`Failed to delete doctor: ${error.message}`);
+  }
+}
 
 
 

@@ -102,9 +102,12 @@ export class DoctorEntity {
   @Column()
   image: string;
 
-  @ManyToOne(() => UserEntity) // Define the user relationship
-  @JoinColumn() // Add join column
-  user: UserEntity; // Define the user property
+  // @ManyToOne(() => UserEntity)
+  // @JoinColumn()
+  // user: UserEntity;
+  @ManyToOne(() => UserEntity) // Specify cascade option
+  @JoinColumn()
+  user: UserEntity;
   
   @OneToMany(() => eServiceEntity,(eService)=>eService.doctor)
   eServices: eServiceEntity[];
