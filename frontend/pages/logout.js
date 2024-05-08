@@ -43,9 +43,16 @@ export default function LoginForm() {
         }
     };
 
+    const handleLogout = () => {
+        // Perform logout action here, e.g., clearing local storage, removing tokens, etc.
+        // Redirect to the login page or perform any other desired action
+        // For demonstration purposes, let's just log out a message
+        console.log('Logged out');
+    };
+
     return (
         <div className="flex flex-col min-h-screen">
-            <Navbar />
+            <Navbar handleLogout={handleLogout} />
             <div className="flex-grow flex items-center justify-center">
                 <form onSubmit={handleSubmit} className="max-w-md w-full px-4">
                     <div className="mb-4">
