@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie'; // Import js-cookie library
 import Navbar from './Components/navbar';
 import Footer from './Components/footer';
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [jsonData, setJsonData] = useState(null);
     const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
@@ -28,12 +28,14 @@ export default function LoginForm() {
             const data = response.data;
             
             // Check if the response indicates successful login
-            if (data) {
+            if (data && data.access_token) {
                 setError('');
-                setJsonData(data);
-                
-                // Redirect to index page
-                window.location.href = '/';
+                // Save access token in cookie
+                Cookies.set('access_token', data.access_token, { expires: 1 }); // Expires in 1 day
+                // Redirect to profile page
+                window.location.href = '/doctor/dashboard';
+                console.log("Response: ",response);
+            console.log("Data: ",data)
             } else {
                 setError('Invalid username or password');
             }
@@ -70,7 +72,6 @@ export default function LoginForm() {
                     </div>
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     <button type="submit" className="btn w-full">Login</button>
-                    {jsonData && <p>{jsonData}</p>}
                 </form>
             </div>
             <Footer />

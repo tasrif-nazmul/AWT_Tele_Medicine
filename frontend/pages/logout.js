@@ -1,86 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Navbar from './Components/navbar';
-import Footer from './Components/footer';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
 
-export default function LoginForm() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [jsonData, setJsonData] = useState(null);
+export default function Profile() {
+    const [DrsProfile, DrProfile] = useState(null); // Initialize state with null
     const [error, setError] = useState('');
+    const router = useRouter();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        fetchData();
+    }, []); // Pass an empty dependency array to useEffect to run only once
 
-        if (!email) {
-            setError('Please enter email');
-            return;
-        }
-        
-        if (!password) {
-            setError('Please enter password');
-            return;
-        }
-
+    const fetchData = async () => {
         try {
-            const loginData = { email, password };
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/login`, loginData);
+            const token = Cookies.get('access_token');
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/logout`, {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
             const data = response.data;
-            
-            // Check if the response indicates successful login
-            if (data) {
-                setError('');
-                setJsonData(data);
-                
-                // Redirect to index page
-                window.location.href = '/';
-            } else {
-                setError('Invalid username or password');
-            }
+            DrProfile(data);
         } catch (error) {
             console.error(error);
-            setError('Invalid username or password');
+            setError('Failed to fetch data');
         }
     };
 
     const handleLogout = () => {
-        // Perform logout action here, e.g., clearing local storage, removing tokens, etc.
-        // Redirect to the login page or perform any other desired action
-        // For demonstration purposes, let's just log out a message
-        console.log('Logged out');
+        // Clear authentication token
+        Cookies.remove('access_token');
+        // Redirect to login page
+        router.push('/login');
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <Navbar handleLogout={handleLogout} />
-            <div className="flex-grow flex items-center justify-center">
-                <form onSubmit={handleSubmit} className="max-w-md w-full px-4">
-                    <div className="mb-4">
-                        <label className="block mb-2">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="input input-bordered w-full"
-                            placeholder="Enter your email"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block mb-2">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="input input-bordered w-full"
-                            placeholder="Enter your password"
-                        />
-                    </div>
-                    {error && <p className="text-red-500 mb-4">{error}</p>}
-                    <button type="submit" className="btn w-full">Login</button>
-                    {jsonData && <p>{jsonData}</p>}
-                </form>
+        <>
+            <div className="bg-gray-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                    {/* Profile information display */}
+                </div>
+                {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
+                <div className="flex justify-center mt-8">
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                        Logout
+                    </button>
+                </div>
             </div>
-            <Footer />
-        </div>
+        </>
     );
 }

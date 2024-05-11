@@ -17,7 +17,8 @@ export default function LoginForm() {
             return;
         }
         
-        if (!password) {
+        if (!password) 
+            {
             setError('Please enter password');
             return;
         }
@@ -26,6 +27,8 @@ export default function LoginForm() {
             const loginData = { email, password };
             const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/login`, loginData);
             const data = response.data;
+            console.log("Respons: ", response);
+            console.log("Data: ", data);
             
             // Check if the response indicates successful login
             if (data) {
@@ -33,7 +36,7 @@ export default function LoginForm() {
                 setJsonData(data);
                 
                 // Redirect to index page
-                window.location.href = '/';
+                // window.location.href = '/';
             } else {
                 setError('Invalid username or password');
             }

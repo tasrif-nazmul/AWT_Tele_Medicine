@@ -1,55 +1,68 @@
-import Navbar from "../Components/navbar";
-import Footer from "../Components/footer";
-import SideMenu from "../Components/sideMenu";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import Navbar from '../Components/navbar';
+import Footer from '../Components/footer';
+import SideMenu from '../Components/sideMenu';
 
-export default function ProfilePage() {
+export default function Profile() {
+    const [DrsProfile, DrProfile] = useState(null); // Initialize state with null
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchData();
+    }, []); // Pass an empty dependency array to useEffect to run only once
+
+    const fetchData = async () => {
+        try {
+            const token = Cookies.get('access_token');
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/doctor/profile`, {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            const data = response.data;
+            DrProfile(data);
+        } catch (error) {
+            console.error(error);
+            setError('Failed to fetch data');
+        }
+    };
+
     return (
-        <div className="flex flex-col h-screen">
+        <>
             <Navbar />
-            <div className="flex flex-grow">
-                <SideMenu />
-                <div className="flex-grow flex items-center justify-center">
-                    <div className="max-w-lg mx-auto">
-                        {/* Profile Picture */}
-                        <div className="mb-8 flex justify-center">
-                            <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt="Profile" className="w-32 h-32 rounded-full" />
+            <div className="bg-gray-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div className="sm:flex sm:items-center px-6 py-4">
+                        <div className="sm:w-1/4">
+                            <img src={DrsProfile?.image} alt="Profile" className="w-32 h-32 rounded-full mx-auto sm:mx-0" />
                         </div>
-                        {/* Biodata */}
-                        <div className="bg-white p-4 rounded-md shadow" w-500>
-                            <h2 className="text-2xl font-bold mb-4">Biodata</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Biodata Fields */}
-                                <div>
-                                    <label className="block text-gray-600">Name:</label>
-                                </div>
-                                <div>
-                                    <p className="mb-2">Nazmul Hasan</p>
-                                </div>
-                                <div>
-                                    <label className="block text-gray-600">Age:</label>
-                                </div>
-                                <div>
-                                    <p>30</p>
-                                </div>
-                                <div>
-                                    <label className="block text-gray-600">Email:</label>
-                                </div>
-                                <div>
-                                    <p className="mb-2">nazmul@example.com</p>
-                                </div>
-                                {/* Add more biodata fields */}
-                                <div>
-                                    <label className="block text-gray-600">Address:</label>
-                                </div>
-                                <div>
-                                    <p>123 Street, City</p>
-                                </div>
+                        <div className="sm:w-3/4 sm:ml-6 mt-4 sm:mt-0">
+                            <h1 className="text-3xl font-semibold text-gray-800">{DrsProfile?.name}</h1>
+                            <p className="text-gray-600 text-lg mt-2">{DrsProfile?.email}</p>
+                            <div className="mt-4">
+                                <p className="text-gray-700 font-semibold">Specialization:</p>
+                                <p className="text-gray-600">{DrsProfile?.specialization}</p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="text-gray-700 font-semibold">Degree:</p>
+                                <p className="text-gray-600">{DrsProfile?.degree}</p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="text-gray-700 font-semibold">Experience:</p>
+                                <p className="text-gray-600">{DrsProfile?.experience}</p>
+                            </div>
+                            <div className="mt-4">
+                                <p className="text-gray-700 font-semibold">Contact No:</p>
+                                <p className="text-gray-600">{DrsProfile?.phoneNumber}</p>
                             </div>
                         </div>
                     </div>
                 </div>
+                {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
             </div>
             <Footer />
-        </div>
+        </>
     );
 }
