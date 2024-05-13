@@ -332,8 +332,51 @@ async CompleteAppointments(@Request() req): Promise<any> {
 
 
 
-//---7----
-//---Doctor Profile update
+// //---7----
+// //---Doctor Profile update
+// @Post('/profile/update')
+// @UseInterceptors(FileInterceptor('image', {
+//   storage: diskStorage({
+//       destination: './uploads',
+//       filename: function (req, file, cb) {
+//           cb(null, Date.now() + file.originalname)
+//       }
+//   })
+// }))
+// @UseGuards(AuthGuard)
+// @UsePipes(new ValidationPipe({ transform: true }))
+// @HttpCode(HttpStatus.OK)
+// async updateDoctorProfile(@Request() req,@UploadedFile(
+//   new ParseFilePipe({
+//     fileIsRequired: true,
+//     validators:[
+//       new MaxFileSizeValidator({ maxSize: 16000000 }),
+//       // new FileTypeValidator({ fileType: 'png|jpg|jpeg|' }),
+//     ]
+//   })
+// ) file: Express.Multer.File , @Body() doctorEntity: DoctorEntity): Promise<any> 
+// {
+//   try {
+//     const doct_id = req.user.id;
+//     doctorEntity.image = file.filename;
+//     const updatedDoctorProfile = await this.doctorService.updateProfile(doct_id, doctorEntity);
+//     return {
+//       message: 'Doctor profile updated successfully',
+//       doctorProfile: updatedDoctorProfile,
+//     };
+//   } 
+//   catch (error) 
+//   {
+//     if (error instanceof NotFoundException) 
+//     {
+//       throw new NotFoundException(error.message);
+//     }
+//     throw error;
+//   }
+// }
+
+
+
 @Post('/profile/update')
 @UseInterceptors(FileInterceptor('image', {
   storage: diskStorage({
@@ -341,39 +384,45 @@ async CompleteAppointments(@Request() req): Promise<any> {
       filename: function (req, file, cb) {
           cb(null, Date.now() + file.originalname)
       }
-  })
+  }),
+  limits: {
+    fileSize: 16 * 1024 * 1024 // 16 MB, adjust as needed
+  }
 }))
 @UseGuards(AuthGuard)
 @UsePipes(new ValidationPipe({ transform: true }))
 @HttpCode(HttpStatus.OK)
-async updateDoctorProfile(@Request() req,@UploadedFile(
-  new ParseFilePipe({
-    fileIsRequired: true,
-    validators:[
-      new MaxFileSizeValidator({ maxSize: 16000000 }),
-      // new FileTypeValidator({ fileType: 'png|jpg|jpeg|' }),
-    ]
-  })
-) file: Express.Multer.File , @Body() doctorEntity: DoctorEntity): Promise<any> 
-{
+async updateDoctorProfile(
+  @Request() req,
+  @UploadedFile(
+    new ParseFilePipe({
+      fileIsRequired: false, // Make file optional
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 16000000 }),
+        // new FileTypeValidator({ fileType: 'png|jpg|jpeg|' }),
+      ]
+    })
+  ) file: Express.Multer.File,
+  @Body() doctorEntity: DoctorEntity
+): Promise<any> {
   try {
     const doct_id = req.user.id;
-    doctorEntity.image = file.filename;
+    if (file) {
+      doctorEntity.image = file.filename;
+    }
     const updatedDoctorProfile = await this.doctorService.updateProfile(doct_id, doctorEntity);
     return {
       message: 'Doctor profile updated successfully',
       doctorProfile: updatedDoctorProfile,
     };
-  } 
-  catch (error) 
-  {
-    if (error instanceof NotFoundException) 
-    {
+  } catch (error) {
+    if (error instanceof NotFoundException) {
       throw new NotFoundException(error.message);
     }
     throw error;
   }
 }
+
 
 
 

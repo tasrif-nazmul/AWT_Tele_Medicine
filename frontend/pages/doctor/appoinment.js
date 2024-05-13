@@ -5,9 +5,10 @@ import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 import SideMenu from '../Components/sideMenu';
 
-export default function Dashboard() {
+export default function Appointment() {
     const [serviceList, setServiceList] = useState([]);
     const [error, setError] = useState('');
+    const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -25,48 +26,96 @@ export default function Dashboard() {
             setServiceList(data);
         } catch (error) {
             console.error(error);
-            setError('Failed to fetch data');
+            setError('No appointment available');
         }
+    };
+
+    const handleEdit = async (appointmentId, updatedData) => {
+        try {
+            if (!updatedData.scheduledTime) {
+                setError('Please set a time');
+                return;
+            }
+            const token = Cookies.get('access_token');
+            const response = await axios.put(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/doctor/${appointmentId}/appointment/accept`, updatedData, {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+            setError('Successfully accept the appointment');
+    
+            // Update serviceList with new data
+            const updatedServiceList = serviceList.map(appointment => {
+                if (appointment.id === appointmentId) {
+                    return {
+                        ...appointment,
+                        scheduledTime: updatedData.scheduledTime // Update scheduledTime
+                    };
+                }
+                return appointment;
+            });
+            setServiceList(updatedServiceList);
+    
+        } catch (error) {
+            console.error("Failed to accept appointment:", error);
+            setError('Failed to accept appointment');
+        }
+    };
+
+    const handleInputChange = (e) => {
+        setInputValue(e.target.value);
     };
 
     return (
         <div className="flex flex-col h-screen">
             <Navbar />
-            <div className="flex flex-grow">
+            <div className="flex flex-1">
                 <SideMenu />
-                <div className="flex-grow flex flex-col justify-center items-center">
-                    <div className="max-w-lg">
-                        <h1 className="text-center mb-4"><b>Pending Appoinment List</b></h1>
-                        {error && <p className="text-red-500 mb-4">{error}</p>}
-                        <table className="table table-xs">
+                <div className="flex-grow p-8">
+                    <h1 className="text-2xl font-bold mb-4">Pending Appointment List</h1>
+                    {error && <p className="text-red-500">{error}</p>}
+                    
+                        <table className="w-full table-auto">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Appointment Date</th>
-                                    <th>Appointment Time</th>
-                                    <th>Patient ID</th>
-                                    <th>Disease</th>
-                                    <th>Response Time</th>
-                                    <th>Scheduled Time</th>
-                                    <th>Status</th>
+                                    <th className="border px-4 py-2">ID</th>
+                                    <th className="border px-4 py-2">Appointment Date</th>
+                                    <th className="border px-4 py-2">Appointment Time</th>
+                                    <th className="border px-4 py-2">Disease</th>
+                                    <th className="border px-4 py-2">Scheduled Time</th>
+                                    <th className="border px-4 py-2">Status</th>
+                                    <th className="border px-4 py-2">Give Schedule</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {serviceList.map((appointment, index) => (
-                                    <tr key={index}>
-                                        <td>{appointment.id}</td>
-                                        <td>{appointment.appointment_date}</td>
-                                        <td>{appointment.appointment_time}</td>
-                                        <td>{appointment.patient_id}</td>
-                                        <td>{appointment.disease}</td>
-                                        <td>{appointment.responseTime}</td>
-                                        <td>{appointment.scheduledTime}</td>
-                                        <td>{appointment.status}</td>
+                                    <tr key={index} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                                        <td className="border px-4 py-2">{appointment.id}</td>
+                                        <td className="border px-4 py-2">{appointment.appointment_date}</td>
+                                        <td className="border px-4 py-2">{appointment.appointment_time}</td>
+                                        <td className="border px-4 py-2">{appointment.disease}</td>
+                                        <td className="border px-4 py-2">
+                                            <input
+                                                type="time"
+                                                className="border rounded px-2 py-1"
+                                                value={inputValue}
+                                                onChange={handleInputChange}
+                                            />
+                                        </td>
+                                        <td className="border px-4 py-2">{appointment.status}</td>
+                                        <td className="border px-4 py-2">
+                                            <button
+                                                onClick={() => handleEdit(appointment.id, { scheduledTime: inputValue })}
+                                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                            >
+                                                Save
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </div>
+                    
                 </div>
             </div>
             <Footer />

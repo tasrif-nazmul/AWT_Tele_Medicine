@@ -3,11 +3,14 @@ import axios from 'axios';
 import Cookies from 'js-cookie'; // Import js-cookie library
 import Navbar from './Components/navbar';
 import Footer from './Components/footer';
+import { useRouter } from 'next/router';
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const router = useRouter();
+ 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,22 +27,42 @@ export default function LoginForm() {
 
         try {
             const loginData = { email, password };
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/login`, loginData);
-            const data = response.data;
+            // const response = await axios.post(`${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/login`, loginData);
+
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_ENDPOINT}api/auth/login`, 
+                loginData, 
+                { withCredentials: true } // Pass withCredentials as part of the config object
+            );
+
             
+            const data = response.data;
+            console.log("Token: ", data);
+
             // Check if the response indicates successful login
-            if (data && data.access_token) {
+            if (data && data.access_token) 
+                {
                 setError('');
                 // Save access token in cookie
                 Cookies.set('access_token', data.access_token, { expires: 1 }); // Expires in 1 day
-                // Redirect to profile page
-                window.location.href = '/doctor/dashboard';
-                console.log("Response: ",response);
+                // return response;
+    
+                
+                // window.location.href = '/doctor/dashboard';
+                router.push('/doctor/dashboard');
+                // window.location.href = '/';
+                
             console.log("Data: ",data)
-            } else {
+            } 
+            
+            else 
+            {
                 setError('Invalid username or password');
             }
-        } catch (error) {
+        } 
+
+        catch (error) 
+        {
             console.error(error);
             setError('Invalid username or password');
         }
